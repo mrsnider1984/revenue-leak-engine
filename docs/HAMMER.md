@@ -1,20 +1,20 @@
 # Jac Hammer
 
-Best JacHammer is not claimed.
+Best JacHammer is not claimed. There is no hosted URL.
 
-## What was tried
+## Blocker
 
-`jaclang` 0.16.7 is the runtime this project uses. `jac --help` lists `start`, `test`, `run`, and the package commands. It does not list `scale`.
+This project runs on `jaclang` 0.16.7 from PyPI. `jac start --help` on that install has no `--scale` flag. `jac --help` has no `scale` command.
 
-Jac Hammer (jachammer.ai) hosts apps generated from a prompt. It is not a git remote that deploys this repository's React client and `walker:pub` API. Replacing the working screen with a Hammer-generated client before noon would throw away the verified demo.
+https://jachammer.ai/ hosts an app generated from a prompt. The free option is the word “sandbox” in that prompt. It does not deploy this Git repository, the React screen, or the walker API.
 
-No hosted URL exists. Leave the Devpost "hosted app" field blank until a real URL is serving this investigation.
+Replacing the working screen with a Hammer-generated app would discard the verified demo. Do not do that before noon.
 
-## If a deploy becomes possible
+## Exact manual action, if you still open it
 
-Document the URL in `SUBMISSION.md` and in the Devpost links. Until then, judges inspect the public repository and run:
+1. Go to https://jachammer.ai/ and sign in with the Jac / Jaseci account.
+2. Free hosting, on that site, means a new prompt that includes the word `sandbox`.
+3. That creates a different app. It does not publish https://github.com/mrsnider1984/revenue-leak-engine.
+4. Leave the Devpost hosted-app field blank.
 
-```bash
-.venv/bin/jac start jac/opportunity.jac --no_client --port 8000
-cd frontend && npm run dev
-```
+Judges can run the verified demo locally. Commands are in the README under Running Locally.

@@ -38,10 +38,14 @@ Mission → Investigate journey → Evidence → Skeptic → Rejected finding �
 
 Say the price finding was rejected. Say the revenue impact is unquantified. Say the handoff is synthetic.
 
-## 6. Technology and impact
+## 6. Jac and IBM
 
 The opportunity graph, the edges, and the verdicts are Jac. Walkers write the graph. The React screen reads it.
 
-IBM Granite is not in this demo. The Skeptic client is in the repo and stays dormant without credentials. The verdict on screen is a labeled deterministic rule.
+IBM Granite is implemented as the Skeptic client and is not called in this demo. No credentials are configured. The verdict on screen is labeled `deterministic_rules`.
 
-The proof case is Ann Arbor. A later pilot would replace the simulated handoff with first-party confirmation counts, then monitor whether completion moved. Distribution, if the pilot is real, is through local economic-development groups, SBDCs, and chambers. That path is not built this weekend.
+## 7. Michigan, then the next step
+
+The proof case is Oasis Hot Tub Gardens in Ann Arbor. The operational handoff is synthetic and labeled. It was not provided by Oasis.
+
+A later pilot would replace that handoff with first-party confirmation counts, then monitor whether completion moved. Distribution, if the pilot is real, is through local economic-development groups, SBDCs, and chambers. That path is not built this weekend.

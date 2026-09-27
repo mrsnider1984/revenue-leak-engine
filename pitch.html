@@ -43,12 +43,17 @@
     <h1 class="flow">Mission → Journey → Evidence → Skeptic → Fix first → Monitor</h1>
   </section>
   <section data-i="6">
-    <div class="kicker">Jac, then Ann Arbor</div>
-    <h1>The graph holds the investigation.</h1>
-    <p>Walkers write evidence, a verdict, and one action. Granite is not in this demo.</p>
-    <p class="scope">Proof case: Oasis, with synthetic operations labeled as such. Next: a local pilot with first-party evidence, then monitoring, then SBDC and chamber distribution if the pilot is real.</p>
+    <div class="kicker">Jac and IBM</div>
+    <h1>Jac holds the graph. Granite is wired, and off.</h1>
+    <p>Walkers write the evidence, the verdict, and one action. This demo’s Skeptic is a labeled deterministic rule. No IBM credentials are configured.</p>
   </section>
-  <nav id="pos">1 / 6 · arrows</nav>
+  <section data-i="7">
+    <div class="kicker">Ann Arbor</div>
+    <h1>One local proof case. Then a pilot.</h1>
+    <p>Oasis Hot Tub Gardens. The operational handoff on screen is synthetic and labeled. It was not provided by Oasis.</p>
+    <p class="scope">Next: first-party confirmation counts, then monitoring, then SBDC and chamber distribution if the pilot is real.</p>
+  </section>
+  <nav id="pos">1 / 7 · arrows</nav>
   <script>
     const slides = [...document.querySelectorAll("section")];
     let i = 0;
@@ -56,7 +61,7 @@
     function show(next) {
       i = (next + slides.length) % slides.length;
       slides.forEach((slide, n) => slide.classList.toggle("active", n === i));
-      pos.textContent = (i + 1) + " / 6 · arrows";
+      pos.textContent = (i + 1) + " / " + slides.length + " · arrows";
     }
     document.addEventListener("keydown", (event) => {
       if (event.key === "ArrowRight" || event.key === " ") show(i + 1);

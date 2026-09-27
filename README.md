@@ -272,6 +272,6 @@ Not in this build: login, billing, multi-business support, live CRM or POS conne
 
 ## Submission
 
-Devpost copy is in `SUBMISSION.md`. The six-beat pitch is `docs/PITCH.md` and `pitch.html` (arrow keys). The architecture drawing is `docs/architecture.svg`. The recording script is `docs/DEMO_SCRIPT.md`. The checklist is `docs/CHECKLIST.md`.
+Devpost copy is in `SUBMISSION.md`. The seven-beat pitch is `pitch.html` (arrow keys) and `docs/PITCH.md`. The architecture drawing is `docs/architecture.svg`. The recording script is `docs/DEMO_SCRIPT.md`. The checklist is `docs/CHECKLIST.md`.
 
 Select Local Impact. Best Jaclang is the Jac prize this repo can defend. Do not select Best of IBM, Best JacHammer, Agentic AI, or Dev Tools. Granite was not called, and the app is not hosted on Jac Hammer.
