@@ -1,257 +1,284 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import fixture from "../../fixture/oasis_demo.json";
 import { loadInitial, runWalker, type Engine } from "./api";
-import { DEMO_FINDING_ORDER, sourceLabel, type Evidence, type GraphSnapshot } from "./types";
+import { FINDING_STEPS, move, stale, stepLabel, type Ordered } from "./playback";
+import { sourceLabel, type Evidence, type Finding, type GraphSnapshot } from "./types";
 
-type Phase = "human" | "journey" | "skeptic" | "fix" | "monitor" | "graph";
+type Step = "human" | "collect" | Ordered;
 
-const fast = new URLSearchParams(window.location.search).has("fast");
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, fast ? 30 : ms));
+const FINDINGS = new Set<string>(FINDING_STEPS);
+
+function words(status: string) {
+  if (status === "ACTION_READY") return "Action ready";
+  if (status === "COLLECTING_EVIDENCE") return "Collecting evidence";
+  const text = status.replaceAll("_", " ").toLowerCase();
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
 
 function chipKind(evidence: Evidence): string {
   if (evidence.source_type === "SIMULATED_BUSINESS_DATA") return "simulated";
   if (evidence.source_type === "PUBLIC_EVIDENCE" || evidence.source_type === "PUBLIC_OBSERVATION") return "public";
+  if (evidence.source_type === "HYPOTHESIS") return "inference";
   return "gap";
 }
 
-function stageStatus(status: string, pending: boolean): string {
-  if (pending && status === "UNKNOWN") return "INVESTIGATING";
-  return status;
+function linked(snapshot: GraphSnapshot, ids: string[]) {
+  const byId = new Map(snapshot.evidence.map((item) => [item.id, item]));
+  return ids.map((id) => byId.get(id)).filter((item): item is Evidence => Boolean(item));
 }
+
+function nowStage(snapshot: GraphSnapshot | null, id: string) {
+  if (!snapshot || !id) return "";
+  if (id === "finding-confirm") return "CONFIRM";
+  const finding = snapshot.findings.find((item) => item.id === id);
+  return snapshot.evidence.find((item) => item.id === finding?.supporting_evidence_ids[0])?.stage ?? "";
+}
+
+function gloss(verdict: string) {
+  if (verdict === "REJECTED") return "Evidence does not support this explanation.";
+  if (verdict === "HYPOTHESIS") return "Plausible, but more evidence is required.";
+  if (verdict === "ACTION_READY") return "Enough evidence exists to justify testing an intervention. Not a proven revenue leak.";
+  return "";
+}
+
+const STORY: Record<string, { q: string; a: string; note?: string }> = {
+  "finding-price": {
+    q: "Is evening pricing causing customers to stop?",
+    a: "No. The available evidence doesn't support that conclusion.",
+    note: "Oasis publicly lists both price levels, but we have no evidence connecting evening pricing to abandonment.",
+  },
+  "finding-room-time": {
+    q: "Does reserved room time create friction?",
+    a: "Possibly. We found a reason to investigate it, but not enough evidence to act.",
+  },
+  "finding-confirm": {
+    q: "Booking → confirmation creates uncertainty worth testing.",
+    a: "Customers can submit a booking request before their visit is actually confirmed.",
+  },
+};
 
 export function App() {
   const [snapshot, setSnapshot] = useState<GraphSnapshot | null>(null);
   const [engine, setEngine] = useState<Engine>({ mode: "jac", note: "" });
-  const [phase, setPhase] = useState<Phase>("human");
-  const [back, setBack] = useState<Phase>("human");
-  const [focusId, setFocusId] = useState(DEMO_FINDING_ORDER[0]);
+  const [step, setStep] = useState<Step>("human");
+  const [graph, setGraph] = useState(false);
   const [evaluating, setEvaluating] = useState(false);
-  const [pending, setPending] = useState(false);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState("");
   const [drawerId, setDrawerId] = useState<string | null>(null);
-  const [selected, setSelected] = useState<string>("");
+  const [selected, setSelected] = useState("");
+  const [photo, setPhoto] = useState(true);
+  const gen = useRef(0);
+  const runningRef = useRef(false);
+  const busy = useRef(false);
+  const snapRef = useRef<GraphSnapshot | null>(null);
+  const engineRef = useRef(engine);
+  const graphButton = useRef<HTMLButtonElement>(null);
+
+  function publish(next: GraphSnapshot, nextEngine: Engine) {
+    snapRef.current = next;
+    engineRef.current = nextEngine;
+    setSnapshot(next);
+    setEngine(nextEngine);
+  }
 
   useEffect(() => {
-    let alive = true;
+    const token = gen.current;
     loadInitial().then((result) => {
-      if (!alive) return;
-      setSnapshot(result.snapshot);
-      setEngine(result.engine);
+      if (stale(token, gen.current)) return;
+      publish(result.snapshot, result.engine);
     });
-    return () => {
-      alive = false;
-    };
   }, []);
 
-  async function call(name: string, body: Record<string, string> = {}) {
-    if (!snapshot) throw new Error("Graph is not ready");
-    const result = await runWalker(engine, snapshot, name, body);
-    setEngine(result.engine);
-    setSnapshot(result.snapshot);
-    return result.snapshot;
+  async function run(token: number, name: string, body: Record<string, string> = {}) {
+    const current = snapRef.current;
+    if (!current || stale(token, gen.current)) throw new Error("cancelled");
+    const result = await runWalker(engineRef.current, current, name, body);
+    if (stale(token, gen.current)) throw new Error("cancelled");
+    publish(result.snapshot, result.engine);
   }
 
   async function reset() {
-    setError("");
+    const token = ++gen.current;
+    runningRef.current = false;
+    busy.current = false;
     setRunning(false);
     setEvaluating(false);
-    setPending(false);
+    setError("");
     setDrawerId(null);
-    setPhase("human");
+    setGraph(false);
+    setSelected("");
+    setStep("human");
+    snapRef.current = null;
+    setSnapshot(null);
     const result = await loadInitial();
-    setSnapshot(result.snapshot);
-    setEngine(result.engine);
+    if (stale(token, gen.current)) return;
+    publish(result.snapshot, result.engine);
   }
 
   async function investigate() {
-    if (!snapshot || running) return;
+    if (runningRef.current || !snapRef.current) return;
+    const token = gen.current;
+    runningRef.current = true;
     setRunning(true);
     setError("");
-    setPhase("journey");
-    setPending(true);
+    setDrawerId(null);
+    setGraph(false);
+    setStep("collect");
     try {
-      let current = snapshot;
-      const step = async (name: string, body: Record<string, string> = {}) => {
-        const result = await runWalker(engine, current, name, body);
-        current = result.snapshot;
-        setEngine(result.engine);
-        setSnapshot(result.snapshot);
-        return result.snapshot;
-      };
-      await step("undercover_walk");
-      setPending(false);
-      await wait(1600);
-      await step("market_walk");
-      await wait(1800);
-      await step("ops_walk");
-      await wait(1600);
-      for (const findingId of DEMO_FINDING_ORDER) {
-        setPhase("skeptic");
-        setFocusId(findingId);
-        setEvaluating(true);
-        await wait(1200);
-        await step("skeptic_operator_walk", { finding_id: findingId });
-        setEvaluating(false);
-        const hold = findingId === "finding-price" ? 4000 : 2200;
-        await wait(hold);
-      }
-      setPhase(current.actions.length ? "fix" : "skeptic");
+      await run(token, "undercover_walk");
+      await run(token, "market_walk");
+      await run(token, "ops_walk");
+      setStep("finding-price");
+      setEvaluating(true);
+      await run(token, "skeptic_operator_walk", { finding_id: "finding-price" });
     } catch (err) {
+      if (stale(token, gen.current) || (err instanceof Error && err.message === "cancelled")) return;
       setError(err instanceof Error ? err.message : "The investigation stopped.");
     } finally {
-      setPending(false);
-      setEvaluating(false);
-      setRunning(false);
+      if (!stale(token, gen.current)) {
+        runningRef.current = false;
+        setRunning(false);
+        setEvaluating(false);
+      }
     }
   }
 
-  async function monitor() {
+  async function show(target: Ordered) {
+    if (busy.current) return;
+    const token = gen.current;
+    const snap = snapRef.current;
+    if (!snap) return;
+    setDrawerId(null);
+    setGraph(false);
+    const needsSkeptic = FINDINGS.has(target) && !snap.findings.find((item) => item.id === target)?.verdict;
+    const needsMonitor = target === "monitor" && snap.monitors.length === 0;
+    if (!needsSkeptic && !needsMonitor) {
+      setStep(target);
+      return;
+    }
+    busy.current = true;
+    setStep(target);
+    setEvaluating(needsSkeptic);
     try {
-      await call("start_monitoring");
-      setPhase("monitor");
+      await run(token, needsMonitor ? "start_monitoring" : "skeptic_operator_walk", needsMonitor ? {} : { finding_id: target });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Monitoring did not start.");
+      if (stale(token, gen.current) || (err instanceof Error && err.message === "cancelled")) return;
+      setError(err instanceof Error ? err.message : "The investigation stopped.");
+    } finally {
+      busy.current = false;
+      if (!stale(token, gen.current)) setEvaluating(false);
     }
   }
 
-  function openGraph() {
-    if (!snapshot) return;
-    setBack(phase === "graph" ? back : phase);
-    setPhase("graph");
+  function previous() {
+    const prior = move(step, -1);
+    if (!prior) return;
+    setDrawerId(null);
+    setGraph(false);
+    setStep(prior);
   }
 
   const mission = snapshot?.mission?.statement ?? fixture.mission.statement;
   const supporting = snapshot?.mission?.supporting ?? fixture.mission.supporting;
-  const business = snapshot?.business;
+  const place = snapshot?.business ? `${snapshot.business.name} · ${snapshot.business.city}` : "Oasis Hot Tub Gardens · Ann Arbor, Michigan";
+  const label = stepLabel(step);
   const drawer = snapshot?.evidence.find((item) => item.id === drawerId) ?? null;
-  const focus = snapshot?.findings.find((item) => item.id === focusId) ?? null;
+  const focusId = step === "fix" || step === "monitor" ? "finding-confirm" : FINDINGS.has(step) ? step : "";
+  const open = step === "human" && !graph;
 
   return (
-    <div className="app">
-      {phase !== "human" && (
-        <header className="top">
-          <div>
-            <div className="brand">Revenue Leak Engine</div>
-            <div className="place">{business ? `${business.name} · ${business.city}` : "Oasis Hot Tub Gardens · Ann Arbor, Michigan"}</div>
-          </div>
-          <div className="top-actions">
-            <button className="text-btn" onClick={openGraph}>Opportunity graph</button>
-            <button className="text-btn" onClick={reset}>Reset demo</button>
-          </div>
-        </header>
+    <div className="app" data-open={open ? "1" : "0"}>
+      <header className="top">
+        <div>
+          <div className="brand">Revenue Leak Engine</div>
+          <p className="place">{place}</p>
+          {open && <p className="place">Case study. Not an Oasis product.</p>}
+          {!open && <p className="place">Public case study. Not an Oasis product, customer, or partnership.</p>}
+          {label && <p className="place" aria-live="polite">{label}</p>}
+        </div>
+        <div className="top-actions">
+          <button type="button" className="text-btn" onClick={() => void reset()}>Reset demo</button>
+          {move(step, -1) && <button type="button" className="ghost" onClick={previous}>Previous</button>}
+          {move(step, 1) && step !== "fix" && step !== "finding-confirm" && (
+            <button type="button" className="primary" onClick={() => { const next = move(step, 1); if (next) void show(next); }} disabled={evaluating}>Next</button>
+          )}
+          <button type="button" className="text-btn" ref={graphButton} onClick={() => setGraph(true)}>View Opportunity Graph</button>
+        </div>
+      </header>
+      {engine.mode === "local_fixture" && <p className="banner">{engine.note}</p>}
+      {error && <p className="error" role="alert">{error}</p>}
+      <section className="hero">
+        <div>
+          {open && <p className="kicker">Customer mission</p>}
+          <h1 className="mission">{mission}</h1>
+          {open && (
+            <>
+              <p className="support">{supporting}</p>
+              <p className="task">Find where this opportunity becomes uncertain.</p>
+              <p className="task">Revenue stays unquantified. The question is where this visit becomes uncertain.</p>
+              <div className="actions">
+                <button type="button" className="primary" disabled={!snapshot || running} onClick={() => void investigate()}>
+                  {snapshot ? "Investigate journey" : "Preparing the case"}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+        {open && photo && (
+          <figure className="photo">
+            <img src="/garden-illustrative.png" alt="Illustrative garden. Not a photograph of Oasis." onError={() => setPhoto(false)} />
+            <figcaption>Illustrative. Not a photograph of Oasis.</figcaption>
+          </figure>
+        )}
+      </section>
+      <Journey snapshot={snapshot} quiet={open} nowName={nowStage(snapshot, focusId)} />
+      {snapshot && graph && <Graph snapshot={snapshot} selected={selected} onSelect={setSelected} onBack={() => { setGraph(false); graphButton.current?.focus(); }} />}
+      {snapshot && !graph && step === "collect" && !error && (
+        <p className="panel lede">Reading the public journey.</p>
       )}
-      {engine.mode === "local_fixture" && phase !== "human" && <p className="banner">{engine.note}</p>}
-      {error && <p className="error">{error}</p>}
-
-      {phase === "human" && (
-        <section className="human">
-          <header className="top">
-            <div>
-              <div className="brand">Revenue Leak Engine</div>
-              <div className="place">Oasis Hot Tub Gardens</div>
-              <div className="place">Ann Arbor, Michigan</div>
-            </div>
-            <button className="text-btn" onClick={reset}>Reset demo</button>
-          </header>
-          <main>
-            <div>
-              <div className="kicker">Customer mission</div>
-              <h1 className="mission">
-                <span>I just want to</span>
-                decompress.
-              </h1>
-              <p className="support">{supporting || mission}</p>
-            </div>
-            <Journey snapshot={snapshot} pending={false} onEvidence={setDrawerId} quiet />
-          </main>
-          <div className="actions">
-            <button className="primary" disabled={!snapshot || running} onClick={investigate}>Investigate journey</button>
-            <button className="linkish" onClick={openGraph}>Explore opportunity graph</button>
-          </div>
-        </section>
+      {snapshot && !graph && FINDINGS.has(step) && (
+        <Skeptic snapshot={snapshot} focusId={step} evaluating={evaluating} label={label} onEvidence={setDrawerId} onFix={() => void show("fix")} />
       )}
-
-      {phase === "journey" && snapshot && (
-        <section className="screen">
-          <div className="kicker">Customer mission</div>
-          <h1>{mission}</h1>
-          <p className="lede">{supporting}</p>
-          <Journey snapshot={snapshot} pending={pending} onEvidence={setDrawerId} />
-          <div className="agents">
-            <div><strong>Undercover</strong>{snapshot.agent_runs.some((run) => run.agent === "undercover_walk") ? "Customer journey examined" : pending ? "Examining customer journey..." : "Waiting"}</div>
-            <div><strong>Market</strong>{snapshot.agent_runs.some((run) => run.agent === "market_walk") ? "Public evidence collected" : "Waiting"}</div>
-            <div><strong>CRM / Ops</strong>{snapshot.agent_runs.some((run) => run.agent === "ops_walk") ? "Simulated handoff examined" : "Waiting"}</div>
-            <div><strong>Skeptic</strong>Waiting for a candidate finding</div>
-          </div>
-          <p className="warning">{snapshot.meta.coverage_warning}</p>
-        </section>
-      )}
-
-      {phase === "skeptic" && snapshot && focus && (
-        <Skeptic
-          snapshot={snapshot}
-          focusId={focusId}
-          evaluating={evaluating}
-          onEvidence={setDrawerId}
-        />
-      )}
-
-      {phase === "fix" && snapshot && <Fix snapshot={snapshot} onMonitor={monitor} onWhy={() => setDrawerId(snapshot.evidence.find((item) => item.id === "ev-request")?.id ?? null)} />}
-      {phase === "monitor" && snapshot && <Monitor snapshot={snapshot} />}
-      {phase === "graph" && snapshot && (
-        <Graph snapshot={snapshot} selected={selected} onSelect={setSelected} onBack={() => setPhase(back)} />
-      )}
-      {drawer && (
+      {snapshot && !graph && step === "fix" && <Fix snapshot={snapshot} onMonitor={() => void show("monitor")} />}
+      {snapshot && !graph && step === "monitor" && <Monitor snapshot={snapshot} />}
+      {drawer && snapshot && (
         <Drawer
           evidence={drawer}
+          finding={snapshot.findings.find((item) => item.supporting_evidence_ids.includes(drawer.id) || item.counter_evidence_ids.includes(drawer.id)) ?? null}
           onClose={() => setDrawerId(null)}
-          finding={snapshot?.findings.find((item) => item.supporting_evidence_ids.includes(drawer.id) || item.counter_evidence_ids.includes(drawer.id)) ?? null}
         />
       )}
     </div>
   );
 }
 
-function Journey({
-  snapshot,
-  pending,
-  onEvidence,
-  quiet = false,
-}: {
-  snapshot: GraphSnapshot | null;
-  pending: boolean;
-  onEvidence: (id: string) => void;
-  quiet?: boolean;
+function RefButton({ item, onOpen }: { item: Evidence; onOpen: (id: string) => void }) {
+  const simulated = item.source_type === "SIMULATED_BUSINESS_DATA";
+  return (
+    <button type="button" className="chip" data-kind={chipKind(item)} onClick={() => onOpen(item.id)}>
+      <small>{item.provenance_label}</small>
+      {simulated ? item.summary : item.claim_supported}
+    </button>
+  );
+}
+
+function Journey({ snapshot, quiet, nowName }: {
+  snapshot: GraphSnapshot | null; quiet: boolean; nowName: string;
 }) {
   const stages = snapshot?.stages ?? fixture.stages.map((name, index) => ({
-    jac_id: name,
-    id: name,
-    name,
-    sequence: index + 1,
-    status: "UNKNOWN",
+    jac_id: name, id: name, name, sequence: index + 1, status: "UNKNOWN",
   }));
   return (
     <div className="rail" aria-label="Customer journey">
       {stages.map((stage) => {
-        const status = stageStatus(stage.status, pending);
-        const evidence = snapshot?.evidence.filter((item) => item.stage === stage.name) ?? [];
+        const now = !quiet && stage.name === nowName;
         return (
-          <div className="stage" data-status={status} key={stage.id}>
+          <div className="stage" data-status={stage.status} data-now={now ? "1" : "0"} aria-current={now ? "step" : undefined} key={stage.id}>
             <div className="stage-name">
               {stage.name}
-              {!quiet && <span className="status-word">{status}</span>}
+              {!quiet && <span className="status-word">{words(stage.status)}</span>}
             </div>
-            {!quiet && (
-              <div className="chips">
-                {evidence.map((item) => (
-                  <button key={item.id} className="chip" data-kind={chipKind(item)} onClick={() => onEvidence(item.id)}>
-                    <small>{item.provenance_label}</small>
-                    {item.summary}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         );
       })}
@@ -259,225 +286,189 @@ function Journey({
   );
 }
 
-function Skeptic({
-  snapshot,
-  focusId,
-  evaluating,
-  onEvidence,
-}: {
-  snapshot: GraphSnapshot;
-  focusId: string;
-  evaluating: boolean;
-  onEvidence: (id: string) => void;
+function Skeptic({ snapshot, focusId, evaluating, label, onEvidence, onFix }: {
+  snapshot: GraphSnapshot; focusId: string; evaluating: boolean; label: string; onEvidence: (id: string) => void; onFix: () => void;
 }) {
   const focus = snapshot.findings.find((item) => item.id === focusId);
-  if (!focus) return null;
-  const index = DEMO_FINDING_ORDER.indexOf(focusId);
-  const evidenceById = new Map(snapshot.evidence.map((item) => [item.id, item]));
-  const supporting = focus.supporting_evidence_ids.map((id) => evidenceById.get(id)).filter((item): item is Evidence => Boolean(item));
-  const counter = focus.counter_evidence_ids.map((id) => evidenceById.get(id)).filter((item): item is Evidence => Boolean(item));
-  const shown = focus.verdict && !evaluating ? focus.verdict.verdict : "CHALLENGED";
+  const story = STORY[focusId];
+  if (!focus || !story) return null;
+  const shown = focus.verdict && !evaluating ? focus.verdict.verdict : "";
+  const support = linked(snapshot, focus.supporting_evidence_ids);
+  const counter = linked(snapshot, focus.counter_evidence_ids);
+  if (!shown) {
+    return <section className="panel" aria-live="polite"><p className="kicker">{label}</p><p className="reason">Testing this explanation against the evidence.</p></section>;
+  }
   return (
-    <section className="skeptic">
-      <header>
-        <span>Skeptic · {index + 1} of {DEMO_FINDING_ORDER.length}</span>
-        <span>{shown === "CHALLENGED" ? "Challenging" : shown.replaceAll("_", " ")}</span>
-      </header>
-      <div className={shown === "REJECTED" ? "receded" : ""}>
-        <h2 className="finding-title">{focus.title}</h2>
-        <div className="columns">
-          <div>
-            <h3>Supporting evidence</h3>
-            {supporting.map((item) => (
-              <article key={item.id}>
-                <button className="chip" data-kind={chipKind(item)} onClick={() => onEvidence(item.id)}>
-                  <small>{item.provenance_label}</small>
-                  {item.summary}
-                </button>
-              </article>
-            ))}
-          </div>
-          <div>
-            <h3>Counterevidence</h3>
-            {counter.map((item) => (
-              <article key={item.id}>
-                <button className="chip" data-kind={chipKind(item)} onClick={() => onEvidence(item.id)}>
-                  <small>{item.provenance_label}</small>
-                  {item.summary}
-                </button>
-              </article>
-            ))}
-          </div>
-        </div>
-        <div className="unknowns">
-          <h3>Unknowns</h3>
-          <ul>{focus.unknowns.map((item) => <li key={item}>{item}</li>)}</ul>
-        </div>
+    <section className="panel" aria-live="polite">
+      <p className="kicker">{label}</p>
+      <p className="stamp" data-v={shown}><strong>{words(shown)}</strong></p>
+      <p className="source-note">{gloss(shown)}</p>
+      <h2>{story.q}</h2>
+      <p className="reason">{story.a}</p>
+      {story.note && <p className="lede">{story.note}</p>}
+      {shown === "ACTION_READY" && (
+        <>
+          <div className="field"><span>Customer impact</span><p>I submitted a request, but I don't know whether my visit is confirmed.</p></div>
+          <div className="field"><span>Business question</span><p>Are booking requests failing to become confirmed visits?</p></div>
+          <div className="actions"><button type="button" className="primary" onClick={onFix}>Fix this first</button></div>
+        </>
+      )}
+      <details key={focusId}>
+        <summary>View evidence</summary>
+        <p className="kicker">Observation</p>
+        <div className="chips">{support.map((item) => <RefButton key={item.id} item={item} onOpen={onEvidence} />)}</div>
+        <p className="kicker">Counterevidence</p>
+        <div className="chips">{counter.map((item) => <RefButton key={item.id} item={item} onOpen={onEvidence} />)}</div>
+        <ul className="unknowns">{focus.unknowns.map((item) => <li key={item}>{item}</li>)}</ul>
         <p className="warning">{snapshot.meta.coverage_warning}</p>
-        {evaluating && <p className="evaluating">Skeptic evaluating...</p>}
-        {focus.verdict && !evaluating && (
-          <div className="verdict" data-verdict={focus.verdict.verdict}>
-            <div className="verdict-label">
-              {focus.verdict.verdict.replaceAll("_", " ")}
-              {focus.verdict.verdict === "REJECTED" ? " · Insufficient evidence" : ""}
-            </div>
-            <p className="reason">{focus.verdict.reason}</p>
-            <p className="source-note">{sourceLabel(focus.verdict.reasoning_source)}</p>
-          </div>
-        )}
-      </div>
-      <div className="agents">
-        {snapshot.findings.filter((item) => item.verdict && item.id !== focusId).map((item) => (
-          <div key={item.id} className={item.status === "REJECTED" ? "receded" : ""}>
-            <strong>{item.status.replaceAll("_", " ")}</strong>
-            {item.title}
-          </div>
-        ))}
-      </div>
+        {focus.verdict && <p className="source-note">{focus.verdict.reason}</p>}
+        {focus.verdict && <p className="source-note">{sourceLabel(focus.verdict.reasoning_source)}</p>}
+      </details>
     </section>
   );
 }
 
-function Fix({ snapshot, onMonitor, onWhy }: { snapshot: GraphSnapshot; onMonitor: () => void; onWhy: () => void }) {
+function Fix({ snapshot, onMonitor }: { snapshot: GraphSnapshot; onMonitor: () => void }) {
   const action = snapshot.actions[0];
   const finding = snapshot.findings.find((item) => item.id === action?.finding_id);
-  if (!action) {
-    return <section className="fix"><h1>No action cleared.</h1><p className="lede">The Skeptic did not mark a finding action-ready.</p></section>;
+  if (!action || !finding) {
+    return <section className="panel"><h2>No action.</h2><p className="lede">Nothing is action-ready.</p></section>;
   }
   return (
-    <section className="fix">
-      <div className="kicker">One intervention</div>
-      <h1>Fix first</h1>
-      <div className="field"><span>What to change</span><p>{action.what_to_change}</p></div>
-      <div className="field"><span>Why this first</span><p>{action.why_first}</p></div>
-      <div className="field"><span>Customer outcome</span><p>{action.customer_outcome}</p></div>
-      <div className="field"><span>Business stage</span><p>{action.business_stage}</p></div>
-      <div className="field"><span>What to measure next</span><p>{action.measurement_required}</p></div>
-      {finding?.verdict && (
-        <div className="field"><span>Counterevidence the Skeptic kept</span><p>{finding.verdict.reason}</p></div>
-      )}
-      <div className="impact">
-        <div className="kicker">Revenue impact</div>
-        <p>{snapshot.opportunity?.revenue_impact}</p>
-        <p className="lede">{snapshot.opportunity?.revenue_impact_note}</p>
-      </div>
+    <section className="panel">
+      <h2>Fix first</h2>
+      <p className="reason">Remove uncertainty after a booking request.</p>
+      <p className="kicker">Tell the customer</p>
+      <ol className="unknowns">
+        <li>Your booking has been requested, not confirmed.</li>
+        <li>Here's when you'll hear from us.</li>
+        <li>Here's what to do if confirmation doesn't arrive.</li>
+      </ol>
       <div className="actions">
-        <button className="primary" onClick={onMonitor}>Start monitoring</button>
-        <button className="linkish" onClick={onWhy}>Why this?</button>
+        <button type="button" className="primary" onClick={onMonitor}>Start monitoring</button>
       </div>
+      <div className="field"><span>Why this?</span><p>Public evidence shows that online selections require later staff confirmation.</p></div>
+      <div className="impact">
+        <p className="kicker">Revenue impact</p>
+        <p>Unquantified</p>
+        <p className="lede">Financial impact requires first-party business evidence.</p>
+      </div>
+      <details>
+        <summary>View evidence</summary>
+        <p className="source-note">{finding.verdict?.reason}</p>
+        <p className="source-note">{action.measurement_required}</p>
+        {finding.verdict && <p className="source-note">{sourceLabel(finding.verdict.reasoning_source)}</p>}
+        <p className="source-note">Simulated business data. Not provided by Oasis.</p>
+      </details>
     </section>
   );
 }
 
 function Monitor({ snapshot }: { snapshot: GraphSnapshot }) {
-  const check = snapshot.monitors[0];
-  const action = snapshot.actions[0];
   return (
-    <section className="monitor">
-      <div className="kicker">After the change</div>
-      <h1>Monitor</h1>
-      <p className="lede">{check?.question}</p>
-      <div className="flow">
-        <span>Baseline</span>
-        <span>→</span>
-        <span>Intervention</span>
-        <span>→</span>
-        <span>New evidence</span>
-        <span>→</span>
-        <em>{(check?.status ?? "COLLECTING_EVIDENCE").replaceAll("_", " ")}</em>
-      </div>
-      <div className="field"><span>Baseline</span><p>{check?.baseline}</p></div>
-      <div className="field"><span>Intervention</span><p>{action?.what_to_change}</p></div>
-      <div className="field"><span>New evidence</span><p>{check?.current_value}</p></div>
-      <p className="principle">Success is not whether the system finds a problem. Success is whether fixing an evidence-backed problem measurably improves the customer’s journey.</p>
+    <section className="panel">
+      <h2>Did the fix work?</h2>
+      <div className="field"><span>Status</span><p>{words(snapshot.monitors[0]?.status ?? "COLLECTING_EVIDENCE")}</p></div>
+      <div className="field"><span>We're measuring</span><p>Booking requests → confirmed visits</p></div>
+      <div className="field"><span>Baseline</span><p>Awaiting first-party data</p></div>
+      <div className="field"><span>Next evidence needed</span><p>Booking request and confirmation records</p></div>
       <div className="impact">
-        <div className="kicker">Revenue impact</div>
-        <p>UNQUANTIFIED</p>
-        <p className="lede">{snapshot.meta.revenue_impact_note}</p>
+        <p className="kicker">Revenue impact</p>
+        <p>Unquantified</p>
+        <p className="lede">We won't estimate financial impact until the business provides sufficient evidence.</p>
       </div>
+      <p className="source-note">Oasis was not changed. No live monitor is connected.</p>
+      <p className="source-note">This demo is not saved. Opening the page again starts over. Nothing changes until booking and confirmation records exist.</p>
     </section>
   );
 }
 
-function Graph({
-  snapshot,
-  selected,
-  onSelect,
-  onBack,
-}: {
-  snapshot: GraphSnapshot;
-  selected: string;
-  onSelect: (value: string) => void;
-  onBack: () => void;
+function relate(snapshot: GraphSnapshot, id: string) {
+  const say = (title: string, bits: string[]) => ({ title, bits });
+  const ev = snapshot.evidence.find((item) => item.id === id);
+  if (ev) {
+    const verdict = snapshot.findings.find((item) => (item.supporting_evidence_ids.includes(id) || item.counter_evidence_ids.includes(id)) && item.verdict)?.verdict;
+    return say(ev.claim_supported, [verdict ? words(verdict.verdict) : "No verdict yet.", ev.summary, ev.source_type]);
+  }
+  const finding = snapshot.findings.find((item) => item.id === id);
+  if (finding) return say(finding.title, finding.verdict ? [words(finding.verdict.verdict), sourceLabel(finding.verdict.reasoning_source)] : ["No verdict yet."]);
+  const stage = snapshot.stages.find((item) => item.id === id);
+  if (stage) return say(stage.name, [words(stage.status)]);
+  const action = snapshot.actions.find((item) => item.id === id);
+  if (action) return say("Fix first", [action.what_to_change]);
+  const monitor = snapshot.monitors.find((item) => item.id === id);
+  if (monitor) return say("Monitor", [words(monitor.status), "Unquantified"]);
+  if (snapshot.mission?.id === id) return say("Mission", [snapshot.mission.statement]);
+  if (snapshot.opportunity?.id === id && snapshot.opportunity) return say("Opportunity", [snapshot.opportunity.revenue_impact]);
+  if (snapshot.business?.id === id && snapshot.business) return say("Business", [snapshot.business.name]);
+  return null;
+}
+
+function Graph({ snapshot, selected, onSelect, onBack }: {
+  snapshot: GraphSnapshot; selected: string; onSelect: (id: string) => void; onBack: () => void;
 }) {
-  const rows: Array<{ id: string; depth: number; kind: string; label: string; detail: string }> = [];
-  if (snapshot.business) {
-    rows.push({ id: snapshot.business.id, depth: 0, kind: "Business", label: snapshot.business.name, detail: JSON.stringify(snapshot.business, null, 2) });
-  }
-  if (snapshot.opportunity) {
-    rows.push({ id: snapshot.opportunity.id, depth: 1, kind: "Opportunity", label: snapshot.opportunity.mission, detail: JSON.stringify(snapshot.opportunity, null, 2) });
-  }
-  if (snapshot.mission) {
-    rows.push({ id: snapshot.mission.id, depth: 2, kind: "Customer mission", label: snapshot.mission.statement, detail: JSON.stringify(snapshot.mission, null, 2) });
-  }
-  for (const stage of snapshot.stages) {
-    rows.push({ id: stage.id, depth: 2, kind: "Journey stage", label: `${stage.name} · ${stage.status}`, detail: JSON.stringify(stage, null, 2) });
-    for (const evidence of snapshot.evidence.filter((item) => item.stage === stage.name)) {
-      rows.push({ id: evidence.id, depth: 3, kind: evidence.provenance_label, label: evidence.summary, detail: JSON.stringify(evidence, null, 2) });
-    }
-  }
-  for (const finding of snapshot.findings) {
-    rows.push({ id: finding.id, depth: 2, kind: `Finding · ${finding.status}`, label: finding.title, detail: JSON.stringify(finding, null, 2) });
-    if (finding.verdict) {
-      rows.push({ id: finding.verdict.jac_id, depth: 3, kind: "Skeptic verdict", label: finding.verdict.verdict, detail: JSON.stringify(finding.verdict, null, 2) });
-    }
-  }
-  for (const action of snapshot.actions) {
-    rows.push({ id: action.id, depth: 2, kind: "Action", label: action.title, detail: JSON.stringify(action, null, 2) });
-  }
-  for (const check of snapshot.monitors) {
-    rows.push({ id: check.id, depth: 3, kind: "Monitor check", label: check.status, detail: JSON.stringify(check, null, 2) });
-  }
-  const detail = rows.find((row) => row.id === selected)?.detail ?? "Select a node. This is the opportunity graph the walkers are writing.";
+  const rows: Array<{ id: string; kind: string; label: string }> = [];
+  const add = (id: string | undefined, kind: string, label: string) => { if (id) rows.push({ id, kind, label }); };
+  add(snapshot.business?.id, "Business", snapshot.business?.name ?? "");
+  add(snapshot.opportunity?.id, "Opportunity", "This visit");
+  add(snapshot.mission?.id, "Mission", "I just want to decompress.");
+  for (const stage of snapshot.stages) add(stage.id, "Stage", `${stage.name} · ${words(stage.status)}`);
+  for (const item of snapshot.evidence) add(item.id, item.provenance_label, item.stage);
+  for (const item of snapshot.findings) add(item.id, words(item.status), item.title);
+  for (const item of snapshot.actions) add(item.id, "Action", item.title);
+  for (const item of snapshot.monitors) add(item.id, "Monitor", words(item.status));
+  const explained = relate(snapshot, selected);
   return (
-    <section className="graph">
-      <button className="text-btn" onClick={onBack}>Back</button>
-      <h1>Opportunity graph</h1>
-      <p className="lede">Source: {snapshot.meta.engine === "jac" ? "Jac / Jaseci. Nodes and edges updated by walkers." : "Local fixture. Jac is not connected."}</p>
+    <section className="graph" aria-label="Opportunity graph">
+      <button type="button" className="text-btn" autoFocus onClick={onBack}>Back</button>
+      <h2>Technical proof: Jac Opportunity Graph</h2>
+      <p className="lede">Revenue Leak Engine stores the customer opportunity, journey stages, evidence, findings, actions, and monitoring state as a Jac/Jaseci graph. Walkers traverse and update this graph during an investigation.</p>
+      {explained ? (
+        <div className="explain">
+          <p className="kicker">{explained.title}</p>
+          {explained.bits.map((bit) => <p key={bit}>{bit}</p>)}
+        </div>
+      ) : <p className="lede">Select a node.</p>}
       <div className="tree">
         {rows.map((row) => (
-          <button key={row.id} className="node-btn" data-depth={row.depth} onClick={() => onSelect(row.id)}>
-            <small>{row.kind}</small>
-            {row.label}
+          <button type="button" key={row.id} className="node-btn" aria-current={selected === row.id ? "true" : undefined} onClick={() => onSelect(row.id)}>
+            <small>{row.kind}</small>{row.label}
           </button>
         ))}
       </div>
-      <pre className="detail">{detail}</pre>
     </section>
   );
 }
 
-function Drawer({ evidence, finding, onClose }: { evidence: Evidence; onClose: () => void; finding: GraphSnapshot["findings"][number] | null }) {
+function Drawer({ evidence, finding, onClose }: { evidence: Evidence; onClose: () => void; finding: Finding | null }) {
+  const panelRef = useRef<HTMLElement>(null);
+  const close = useRef(onClose);
+  close.current = onClose;
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    const root = panelRef.current;
+    root?.querySelector("button")?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopPropagation();
+      close.current();
+    };
+    document.addEventListener("keydown", onKey, true);
+    return () => { document.removeEventListener("keydown", onKey, true); opener?.focus(); };
+  }, [evidence.id]);
   return (
     <>
-      <button className="drawer-back" aria-label="Close evidence" onClick={onClose} />
-      <aside className="drawer">
-        <button className="text-btn" onClick={onClose}>Close</button>
+      <button type="button" className="drawer-back" aria-label="Close evidence" onClick={onClose} />
+      <aside className="drawer" ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="evidence-title">
+        <button type="button" className="text-btn" onClick={onClose}>Close</button>
         <p className="kicker">{evidence.provenance_label}</p>
-        <h2>Why this?</h2>
+        <p className="source-note" data-kind={chipKind(evidence)}>{evidence.source_type === "SIMULATED_BUSINESS_DATA" ? "Simulated business data. Demonstration only. Not provided by Oasis." : evidence.source_type.startsWith("PUBLIC") ? "Real public evidence. Observed from publicly available Oasis information." : evidence.provenance_label}</p>
+        <h2 id="evidence-title">{evidence.stage}</h2>
         <div className="field"><span>Observation</span><p>{evidence.summary}</p></div>
-        <div className="field"><span>Claim</span><p>{evidence.claim_supported}</p></div>
-        <div className="field"><span>Customer impact</span><p>{evidence.customer_outcome_impact.replaceAll("_", " ")}</p></div>
-        <div className="field"><span>Business impact</span><p>{finding?.business_impact ?? "Revenue impact stays unquantified without first-party evidence."}</p></div>
-        <div className="field"><span>Provenance</span><p>{evidence.source_type} · collected by {evidence.collected_by} · {evidence.observed_at}</p></div>
-        {evidence.source_url && <p><a href={evidence.source_url} target="_blank" rel="noreferrer">{evidence.source_url}</a></p>}
-        <div className="field"><span>Confidence</span><p>{evidence.confidence}</p></div>
-        {finding?.verdict && (
-          <>
-            <div className="field"><span>Skeptic verdict</span><p>{finding.verdict.verdict} · {finding.verdict.reason}</p></div>
-            <div className="field"><span>Missing evidence</span><p>{finding.verdict.missing_evidence.join(" ")}</p></div>
-          </>
-        )}
+        <div className="field"><span>Provenance</span><p>{evidence.source_type} · {evidence.collected_by}</p></div>
+        {finding?.verdict && <p className="source-note">{words(finding.verdict.verdict)}. {sourceLabel(finding.verdict.reasoning_source)}</p>}
+        {evidence.source_url && <p><a href={evidence.source_url} target="_blank" rel="noreferrer">Source page</a></p>}
       </aside>
     </>
   );

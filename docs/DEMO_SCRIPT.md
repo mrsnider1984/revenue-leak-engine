@@ -29,4 +29,4 @@ If the take runs long, cut after the monitor line. Do not open the graph during 
 
 Reset demo → Investigate journey → wait through REJECTED → wait through Fix first → Start monitoring.
 
-The app advances the Skeptic on its own. The only clicks after Reset are Investigate journey and Start monitoring.
+The walkers run when you click Investigate journey, then the screen waits. Click Next for room time, Next for the confirmation finding, Next for Fix First, then Start monitoring. Previous goes back without running the walkers again. Do not use Pause. There is no autoplay.

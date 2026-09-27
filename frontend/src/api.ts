@@ -7,11 +7,17 @@ export interface Engine {
 }
 
 async function spawnJac(name: string, body: Record<string, string> = {}): Promise<GraphSnapshot> {
-  const response = await fetch(`/walker/${name}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`/walker/${name}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(20000),
+    });
+  } catch {
+    throw new Error("The investigation stopped.");
+  }
   if (!response.ok) {
     throw new Error(`Walker ${name} returned ${response.status}`);
   }

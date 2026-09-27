@@ -64,7 +64,7 @@ The demo opens on the mission, "I just want to decompress." Investigate journey 
 
 The investigation is a Jac graph. A Business owns one Opportunity. That opportunity has a customer mission, journey stages, evidence, findings, a skeptic verdict, one action, and a monitor check.
 
-Walkers mutate that graph: `undercover_walk`, `market_walk`, `ops_walk`, `skeptic_operator_walk`, and `start_monitoring`. `reset_demo` clears it back to eight unknown stages. `jac start` serves each public walker at `POST /walker/<name>`. State persists in the graph database. The React screen renders the walker response. It does not keep a second investigation while Jac is running. Measured implementation share: 41.5% Jac.
+Walkers mutate that graph: `undercover_walk`, `market_walk`, `ops_walk`, `skeptic_operator_walk`, and `start_monitoring`. `reset_demo` clears it back to eight unknown stages. `jac start` serves each public walker at `POST /walker/<name>`. State persists in the graph database. The React screen renders the walker response. It does not keep a second investigation while Jac is running. Measured implementation share: 40.0% Jac (37,222 of 93,049 implementation bytes).
 
 ### How IBM is used
 
@@ -99,7 +99,7 @@ A local pilot would replace the simulated handoff with first-party booking and c
 ## Links to fill when they exist
 
 - GitHub: https://github.com/mrsnider1984/revenue-leak-engine
-- Demo video: URL
+- Demo video: not recorded. The Devpost field currently holds an unrelated YouTube URL. Replace it before the deadline.
 - Hosted app: leave blank unless Jac Hammer actually serves this app
 
 ## What only a person can click

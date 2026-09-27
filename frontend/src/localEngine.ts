@@ -54,18 +54,14 @@ export function initialLocal(): GraphSnapshot {
     findings: [],
     actions: [],
     monitors: [],
-    agent_runs: [
-      {
-        jac_id: "local-run-reset",
-        id: "run-reset_demo",
-        agent: "reset_demo",
-        opportunity_id: fixture.opportunity.id,
-        status: "completed",
-        started_at: "2026-09-27",
-        completed_at: "2026-09-27",
-        note: "Local fixture reset. Not a live Jac graph.",
-      },
-    ],
+    agent_runs: [ran("reset_demo", "Local fixture reset. Not a live Jac graph.")],
+  };
+}
+
+function ran(agent: string, note: string) {
+  return {
+    jac_id: `local-run-${agent}`, id: `run-${agent}`, agent, opportunity_id: fixture.opportunity.id,
+    status: "completed", started_at: "2026-09-27", completed_at: "2026-09-27", note,
   };
 }
 
@@ -109,45 +105,18 @@ export function applyLocal(current: GraphSnapshot, name: string, body: Record<st
     next.evidence = withEv.evidence;
     next.opportunity.current_stage = "BOOK";
     next.opportunity.status = "INVESTIGATING";
-    next.agent_runs.push({
-      jac_id: "local-run-undercover",
-      id: "run-undercover_walk",
-      agent: "undercover_walk",
-      opportunity_id: next.opportunity.id,
-      status: "completed",
-      started_at: "2026-09-27",
-      completed_at: "2026-09-27",
-      note: "Examining the customer journey.",
-    });
+    next.agent_runs.push(ran("undercover_walk", "Examining the customer journey."));
   }
 
   if (name === "market_walk") {
     next.evidence = withEvidence(next, "market_walk").evidence;
-    next.agent_runs.push({
-      jac_id: "local-run-market",
-      id: "run-market_walk",
-      agent: "market_walk",
-      opportunity_id: next.opportunity.id,
-      status: "completed",
-      started_at: "2026-09-27",
-      completed_at: "2026-09-27",
-      note: "Public evidence collected.",
-    });
+    next.agent_runs.push(ran("market_walk", "Public evidence collected."));
   }
 
   if (name === "ops_walk") {
     next.evidence = withEvidence(next, "ops_walk").evidence;
     if (next.findings.length === 0) next.findings = candidateFindings();
-    next.agent_runs.push({
-      jac_id: "local-run-ops",
-      id: "run-ops_walk",
-      agent: "ops_walk",
-      opportunity_id: next.opportunity.id,
-      status: "completed",
-      started_at: "2026-09-27",
-      completed_at: "2026-09-27",
-      note: "Examining simulated handoff.",
-    });
+    next.agent_runs.push(ran("ops_walk", "Examining simulated handoff."));
   }
 
   if (name === "skeptic_operator_walk") {
