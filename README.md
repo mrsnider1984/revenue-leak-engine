@@ -147,6 +147,20 @@ Available digital evidence may not represent customers who interact through phon
 
 Internal Oasis CRM, booking history, operational records, and revenue records shown in the demo are synthetic. They were not provided by Oasis. The simulated confirmation gap is labeled on the evidence itself.
 
+## Data Sources
+
+Three layers stay separate.
+
+**Local Impact dataset.** U.S. Census Bureau County Business Patterns, the Bureau’s business-establishment statistics for counties, including Washtenaw County, Michigan. Official source: https://www.census.gov/programs-surveys/cbp.html
+
+This dataset is used only to establish the scale of the local-business ecosystem in Washtenaw County. It is not evidence that Oasis Hot Tub Gardens is losing customers or revenue. No Washtenaw County establishment count is stated here, because a figure was not verified against the Census Bureau page. A local republisher, Health for All Washtenaw, also points at County Business Patterns for this county; that page is not the Census Bureau source: https://www.healthforallwashtenaw.org/indicators/index/view?indicatorId=6371&localeId=1363
+
+**Real public case-study evidence.** Publicly observable Oasis Hot Tub Gardens information: pricing, reservation, confirmation, first visit, and the public journey. Those pages are cited above. This layer is not Census data.
+
+**Simulated first-party business data.** Synthetic CRM, booking progression, employee actions, conversions, revenue, and internal records. This layer is not Oasis data and not Census data. Revenue impact stays unquantified.
+
+Revenue Leak Engine uses U.S. Census Bureau business-establishment data to establish the scale of the local-business ecosystem in Washtenaw County. The Oasis Hot Tub Gardens case study uses separately sourced public business information to demonstrate the customer journey. Internal CRM, booking, conversion, and revenue records are synthetic demonstration data because the project does not have access to Oasis's first-party systems.
+
 ## Security
 
 Secrets belong in environment variables. The repo commits `.env.example` only. `.gitignore` excludes `.env`, `.env.*` except the example, keys, and credential JSON. The browser never receives an API key. The Granite call, when configured, runs in the Jac process.

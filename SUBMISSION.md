@@ -84,6 +84,14 @@ Internal Oasis business information in this demo is synthetic. It was not provid
 
 Public observations were read from oasishottubs.com on 2026-09-27: the homepage, the first-time guest page, the Ann Arbor rates, and the reservations page. Those pages are cited in the app.
 
+The Local Impact dataset is U.S. Census Bureau County Business Patterns, business-establishment statistics for Washtenaw County, Michigan. Official source: https://www.census.gov/programs-surveys/cbp.html
+
+That dataset is used only for the scale of the local-business ecosystem. It is not evidence that Oasis Hot Tub Gardens is losing customers or revenue. No Washtenaw County establishment count is added here, because a figure was not verified against the Census Bureau page. Health for All Washtenaw republishes County Business Patterns for this county and is not the Census Bureau source: https://www.healthforallwashtenaw.org/indicators/index/view?indicatorId=6371&localeId=1363
+
+Public Oasis evidence (pricing, reservation, confirmation, first visit, and the public journey) is separate from Census data. CRM, booking progression, employee actions, conversions, revenue, and other internal records are synthetic demonstration data. They are not Oasis records and they are not Census data. Revenue impact stays unquantified.
+
+Revenue Leak Engine uses U.S. Census Bureau business-establishment data to establish the scale of the local-business ecosystem in Washtenaw County. The Oasis Hot Tub Gardens case study uses separately sourced public business information to demonstrate the customer journey. Internal CRM, booking, conversion, and revenue records are synthetic demonstration data because the project does not have access to Oasis's first-party systems.
+
 ### Future
 
 A local pilot would replace the simulated handoff with first-party booking and confirmation counts, with permission. Monitoring could then ask whether completion moved after the test. If that pilot is real, a later path is distribution through local economic-development groups, SBDCs, chambers, and Main Street organizations. None of that distribution is built here.
