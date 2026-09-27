@@ -1,0 +1,7 @@
+[project]
+name = "revenue-leak-engine"
+version = "0.1.0"
+description = "Jac opportunity graph for Revenue Leak Engine"
+
+[serve]
+port = 8000

@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="1120" viewBox="0 0 880 1120">
+  <rect width="880" height="1120" fill="#10110f"/>
+  <g font-family="Palatino, Iowan Old Style, Georgia, serif" fill="#f3f0e8" text-anchor="middle">
+    <text x="440" y="56" font-size="28">Revenue Leak Engine</text>
+    <text x="440" y="86" font-size="14" fill="#9b968c" font-family="Avenir Next, Gill Sans, sans-serif">One opportunity. Evidence in. One test out.</text>
+  </g>
+  <g font-family="Avenir Next, Gill Sans, sans-serif" text-anchor="middle">
+    <g>
+      <rect x="190" y="120" width="500" height="64" rx="6" fill="#181914" stroke="#f3f0e8" stroke-opacity="0.2"/>
+      <text x="440" y="158" fill="#f3f0e8" font-size="20">React interface</text>
+    </g>
+    <path d="M440 184 V214" stroke="#9b968c" stroke-width="1.5"/>
+    <g>
+      <rect x="190" y="214" width="500" height="72" rx="6" fill="#181914" stroke="#e0a34a"/>
+      <text x="440" y="246" fill="#f3f0e8" font-size="20">Jac / Jaseci opportunity graph</text>
+      <text x="440" y="268" fill="#9b968c" font-size="13">nodes, edges, persistent state</text>
+    </g>
+    <path d="M440 286 V316" stroke="#9b968c" stroke-width="1.5"/>
+    <g>
+      <rect x="190" y="316" width="500" height="64" rx="6" fill="#181914" stroke="#f3f0e8" stroke-opacity="0.2"/>
+      <text x="440" y="354" fill="#f3f0e8" font-size="20">Undercover / Market / Ops walkers</text>
+    </g>
+    <path d="M440 380 V410" stroke="#9b968c" stroke-width="1.5"/>
+    <g>
+      <rect x="190" y="410" width="500" height="64" rx="6" fill="#181914" stroke="#f3f0e8" stroke-opacity="0.2"/>
+      <text x="440" y="448" fill="#f3f0e8" font-size="20">Evidence + candidate findings</text>
+    </g>
+    <path d="M440 474 V504" stroke="#9b968c" stroke-width="1.5"/>
+    <g>
+      <rect x="190" y="504" width="500" height="88" rx="6" fill="#181914" stroke="#9eb6c9"/>
+      <text x="440" y="538" fill="#f3f0e8" font-size="20">IBM Granite Skeptic</text>
+      <text x="440" y="562" fill="#9b968c" font-size="13">live only when credentials are set</text>
+      <text x="440" y="580" fill="#d7b48a" font-size="13">this demo: labeled deterministic rules</text>
+    </g>
+    <path d="M440 592 V622" stroke="#9b968c" stroke-width="1.5"/>
+    <g>
+      <rect x="190" y="622" width="500" height="64" rx="6" fill="#181914" stroke="#e0a34a"/>
+      <text x="440" y="660" fill="#f3f0e8" font-size="20">Jac verdict update</text>
+    </g>
+    <path d="M440 686 V716" stroke="#9b968c" stroke-width="1.5"/>
+    <g>
+      <rect x="190" y="716" width="500" height="64" rx="6" fill="#181914" stroke="#f3f0e8" stroke-opacity="0.2"/>
+      <text x="440" y="754" fill="#f3f0e8" font-size="20">Fix first</text>
+    </g>
+    <path d="M440 780 V810" stroke="#9b968c" stroke-width="1.5"/>
+    <g>
+      <rect x="190" y="810" width="500" height="64" rx="6" fill="#181914" stroke="#f3f0e8" stroke-opacity="0.2"/>
+      <text x="440" y="848" fill="#f3f0e8" font-size="20">Monitor</text>
+    </g>
+    <text x="440" y="940" fill="#9b968c" font-size="14">Revenue impact stays unquantified until first-party evidence exists.</text>
+    <text x="440" y="968" fill="#d7b48a" font-size="14">Simulated Oasis operations were not provided by Oasis.</text>
+  </g>
+</svg>

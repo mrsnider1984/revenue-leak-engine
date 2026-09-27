@@ -1,0 +1,7 @@
+# Fixture data and writeups are not implementation languages.
+# Jac is not a GitHub Linguist language (linguist PR 7653 was not merged).
+# Do not relabel *.jac as Python. Measure Jac with scripts/jac_share.py.
+fixture/** linguist-documentation
+*.md linguist-documentation
+docs/** linguist-documentation
+pitch.html linguist-documentation

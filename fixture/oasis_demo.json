@@ -1,0 +1,287 @@
+{
+  "coverage_warning": "Available digital evidence may not represent customers who interact through phone, walk-in, referral, accessibility-assisted, or other channels.",
+  "revenue_impact_note": "Financial impact requires sufficient first-party business evidence.",
+  "business": {
+    "id": "oasis-ann-arbor",
+    "name": "Oasis Hot Tub Gardens",
+    "city": "Ann Arbor, Michigan",
+    "address": "2301 S State St, Ann Arbor, MI 48104"
+  },
+  "mission": {
+    "id": "mission-decompress",
+    "statement": "I just want to decompress.",
+    "supporting": "Decompress after a stressful week with a simple private experience for two."
+  },
+  "opportunity": {
+    "id": "opp-decompress-for-two",
+    "mission": "Decompress after a stressful week with a simple private experience for two.",
+    "revenue_impact": "UNQUANTIFIED"
+  },
+  "stages": ["DISCOVER", "UNDERSTAND", "CHOOSE", "BOOK", "CONFIRM", "ARRIVE", "EXPERIENCE", "RETURN"],
+  "stage_plan": {
+    "DISCOVER": "PASS",
+    "UNDERSTAND": "PASS",
+    "CHOOSE": "PASS",
+    "BOOK": "FRICTION",
+    "CONFIRM": "FRICTION",
+    "ARRIVE": "UNKNOWN",
+    "EXPERIENCE": "UNKNOWN",
+    "RETURN": "UNKNOWN"
+  },
+  "evidence": [
+    {
+      "id": "ev-scenario",
+      "stage": "DISCOVER",
+      "source_type": "HYPOTHESIS",
+      "source_url": "",
+      "observed_at": "2026-09-27",
+      "collected_by": "undercover_walk",
+      "claim_supported": "This demonstration follows one customer mission. It is not an interview and not a record from Oasis.",
+      "confidence": 1.0,
+      "customer_outcome_impact": "SUPPORTS_DECOMPRESSION",
+      "provenance_label": "DEMONSTRATION SCENARIO",
+      "summary": "The customer wants a simple private hour for two after a stressful week. This scenario starts once that person is looking at Oasis. It does not observe how they found the business."
+    },
+    {
+      "id": "ev-coverage",
+      "stage": "DISCOVER",
+      "source_type": "UNKNOWN",
+      "source_url": "",
+      "observed_at": "2026-09-27",
+      "collected_by": "undercover_walk",
+      "claim_supported": "Public website evidence does not cover every way a customer reaches the business.",
+      "confidence": 1.0,
+      "customer_outcome_impact": "UNKNOWN",
+      "provenance_label": "COVERAGE GAP",
+      "summary": "Phone, walk-in, referral, and accessibility-assisted journeys are not in this evidence set."
+    },
+    {
+      "id": "ev-homepage",
+      "stage": "UNDERSTAND",
+      "source_type": "PUBLIC_EVIDENCE",
+      "source_url": "https://oasishottubs.com/",
+      "observed_at": "2026-09-27",
+      "collected_by": "market_walk",
+      "claim_supported": "The public homepage describes a private, restorative garden visit and lists the Ann Arbor location.",
+      "confidence": 0.9,
+      "customer_outcome_impact": "SUPPORTS_DECOMPRESSION",
+      "provenance_label": "PUBLIC EVIDENCE",
+      "summary": "Observed on the homepage: private garden rooms, a restorative visit, and the Ann Arbor address at 2301 S State St."
+    },
+    {
+      "id": "ev-room-time",
+      "stage": "UNDERSTAND",
+      "source_type": "PUBLIC_EVIDENCE",
+      "source_url": "https://oasishottubs.com/about/first-time-guests/",
+      "observed_at": "2026-09-27",
+      "collected_by": "market_walk",
+      "claim_supported": "The first-time guest page states that reserved time is total time in the room, including changing and showering, not only time in the water.",
+      "confidence": 0.9,
+      "customer_outcome_impact": "ADDS_UNCERTAINTY",
+      "provenance_label": "PUBLIC EVIDENCE",
+      "summary": "Observed: room time includes changing and shower time. Whether that surprises anyone enough to stop is not observed."
+    },
+    {
+      "id": "ev-room-disclosed",
+      "stage": "UNDERSTAND",
+      "source_type": "PUBLIC_OBSERVATION",
+      "source_url": "https://oasishottubs.com/about/first-time-guests/",
+      "observed_at": "2026-09-27",
+      "collected_by": "market_walk",
+      "claim_supported": "The room-time rule is published on the first-time guest page.",
+      "confidence": 0.9,
+      "customer_outcome_impact": "SUPPORTS_DECOMPRESSION",
+      "provenance_label": "PUBLIC OBSERVATION",
+      "summary": "The rule is stated publicly before arrival. This demo has no complaint or abandonment record tied to it."
+    },
+    {
+      "id": "ev-rates",
+      "stage": "CHOOSE",
+      "source_type": "PUBLIC_EVIDENCE",
+      "source_url": "https://oasishottubs.com/rates-hours/",
+      "observed_at": "2026-09-27",
+      "collected_by": "market_walk",
+      "claim_supported": "Ann Arbor publishes a 1-hour rate for up to 2 people: $44 before 5pm and $64 after 5pm.",
+      "confidence": 0.95,
+      "customer_outcome_impact": "UNKNOWN",
+      "provenance_label": "PUBLIC EVIDENCE",
+      "summary": "Observed on the rates page for Ann Arbor, up to 2 people: 1 hour is $44.00 for start times from 11am through 5pm, and $64.00 after 5pm. Holiday rates can differ."
+    },
+    {
+      "id": "ev-rates-published",
+      "stage": "CHOOSE",
+      "source_type": "PUBLIC_OBSERVATION",
+      "source_url": "https://oasishottubs.com/rates-hours/",
+      "observed_at": "2026-09-27",
+      "collected_by": "market_walk",
+      "claim_supported": "The daytime and evening prices are both stated on the public rates page.",
+      "confidence": 0.95,
+      "customer_outcome_impact": "SUPPORTS_DECOMPRESSION",
+      "provenance_label": "PUBLIC OBSERVATION",
+      "summary": "A customer can see both prices before requesting a time. Publication alone does not show that price stopped anyone."
+    },
+    {
+      "id": "ev-no-price-stop",
+      "stage": "BOOK",
+      "source_type": "UNKNOWN",
+      "source_url": "",
+      "observed_at": "2026-09-27",
+      "collected_by": "undercover_walk",
+      "claim_supported": "No evidence in this investigation shows that the evening price stopped this opportunity.",
+      "confidence": 1.0,
+      "customer_outcome_impact": "UNKNOWN",
+      "provenance_label": "UNKNOWN",
+      "summary": "There is no first-party funnel, price test, or abandonment record in this demo."
+    },
+    {
+      "id": "ev-request",
+      "stage": "BOOK",
+      "source_type": "PUBLIC_OBSERVATION",
+      "source_url": "https://oasishottubs.com/reservations-2/",
+      "observed_at": "2026-09-27",
+      "collected_by": "market_walk",
+      "claim_supported": "Selecting a time on the public booking site submits a request. The appointment is not finalized until staff reviews and approves it.",
+      "confidence": 0.95,
+      "customer_outcome_impact": "ADDS_UNCERTAINTY",
+      "provenance_label": "PUBLIC OBSERVATION",
+      "summary": "Observed on the reservations page: the business uses Square Appointments; selecting a time only submits a request; staff may move the start by up to 15 minutes; the customer hears back by text or email."
+    },
+    {
+      "id": "ev-request-disclosed",
+      "stage": "BOOK",
+      "source_type": "PUBLIC_OBSERVATION",
+      "source_url": "https://oasishottubs.com/reservations-2/",
+      "observed_at": "2026-09-27",
+      "collected_by": "market_walk",
+      "claim_supported": "The reservations page states the request-and-approval rule in public.",
+      "confidence": 0.95,
+      "customer_outcome_impact": "SUPPORTS_DECOMPRESSION",
+      "provenance_label": "PUBLIC OBSERVATION",
+      "summary": "The rule is not hidden. This investigation did not observe whether the Square booking screen repeats that distinction at the moment of submission."
+    },
+    {
+      "id": "ev-phone",
+      "stage": "BOOK",
+      "source_type": "PUBLIC_EVIDENCE",
+      "source_url": "https://oasishottubs.com/reservations-2/",
+      "observed_at": "2026-09-27",
+      "collected_by": "market_walk",
+      "claim_supported": "A phone path exists. Requests inside 4 hours are directed to the location phone.",
+      "confidence": 0.9,
+      "customer_outcome_impact": "UNKNOWN",
+      "provenance_label": "PUBLIC EVIDENCE",
+      "summary": "The reservations page says online requests can be made from 4 hours to 60 days ahead, and sooner than that the customer should call. The FAQ also says reservations can be made in person or by phone. Outcomes on those paths are not in this evidence set."
+    },
+    {
+      "id": "ev-sim-unconfirmed",
+      "stage": "CONFIRM",
+      "source_type": "SIMULATED_BUSINESS_DATA",
+      "source_url": "",
+      "observed_at": "2026-09-27",
+      "collected_by": "ops_walk",
+      "claim_supported": "In the synthetic handoff, this opportunity is requested and not yet recorded as confirmed.",
+      "confidence": 1.0,
+      "customer_outcome_impact": "BLOCKS_PROGRESS",
+      "provenance_label": "SIMULATED BUSINESS DATA",
+      "summary": "Demonstration only. Not provided by Oasis. Synthetic state: request submitted, staff approval not recorded, no confirmation message logged."
+    }
+  ],
+  "findings": [
+    {
+      "id": "finding-price",
+      "title": "The evening price is why this opportunity stopped.",
+      "supporting_evidence_ids": ["ev-rates"],
+      "counter_evidence_ids": ["ev-rates-published", "ev-no-price-stop"],
+      "unknowns": [
+        "No count of people who viewed the rate and did not request a time.",
+        "No price test.",
+        "Revenue impact is unquantified."
+      ],
+      "confidence": 0.18,
+      "customer_impact": "A published price difference is not, by itself, a blocked visit.",
+      "business_impact": "Revenue impact: unquantified. This record cannot support a dollar loss.",
+      "verdict": {
+        "verdict": "REJECTED",
+        "confidence": 0.18,
+        "reason": "The rates page publishes both the $44 and $64 one-hour prices for up to two people. Nothing in this evidence shows the evening price is where the opportunity stopped. Insufficient evidence.",
+        "missing_evidence": [
+          "First-party request and confirmation counts by time of day.",
+          "Any observation that a customer stopped because of price."
+        ],
+        "recommended_next_test": "Do not change price on this record. A price test would need a baseline of requests and confirmations first."
+      }
+    },
+    {
+      "id": "finding-room-time",
+      "title": "The opportunity stopped because reserved time includes changing and showering.",
+      "supporting_evidence_ids": ["ev-room-time"],
+      "counter_evidence_ids": ["ev-room-disclosed"],
+      "unknowns": [
+        "No customer interviews.",
+        "No show, complaint, or repeat-visit record.",
+        "We do not know whether anyone misunderstood the hour."
+      ],
+      "confidence": 0.41,
+      "customer_impact": "Someone expecting a full hour in the water could be surprised. This demo did not observe that surprise.",
+      "business_impact": "Revenue impact: unquantified. A published rule is not a measured loss.",
+      "verdict": {
+        "verdict": "HYPOTHESIS",
+        "confidence": 0.41,
+        "reason": "The first-time guest page does say the hour includes changing and shower time. It also publishes that rule. Plausible point of confusion. Not enough to make it the first change.",
+        "missing_evidence": [
+          "Whether customers notice the rule before they request a time.",
+          "Any first-party sign that this shortened the visit or stopped a return."
+        ],
+        "recommended_next_test": "Leave this as a hypothesis until a first-party note, complaint, or interview says the room-time rule surprised a guest."
+      }
+    },
+    {
+      "id": "finding-confirm",
+      "title": "The customer can leave the booking step without a confirmed visit.",
+      "supporting_evidence_ids": ["ev-request", "ev-sim-unconfirmed"],
+      "counter_evidence_ids": ["ev-request-disclosed", "ev-phone"],
+      "unknowns": [
+        "The Square booking screen itself was not observed.",
+        "Approval time, decline rate, and how often the start time changes are unknown.",
+        "Phone and walk-in results are not in this evidence set.",
+        "Revenue impact is unquantified."
+      ],
+      "confidence": 0.64,
+      "customer_impact": "The customer wants one hour to decompress, not an open question about whether that hour exists.",
+      "business_impact": "Revenue impact: unquantified. The useful next measure is whether requests become confirmed visits, not a dollar estimate.",
+      "verdict": {
+        "verdict": "ACTION_READY",
+        "confidence": 0.64,
+        "reason": "The reservations page states that an online selection is a request, not a finalized appointment, and that staff confirm later by text or email. The synthetic handoff matches that gap: requested, not confirmed. The same page already discloses the rule, and the booking widget itself was not observed, so this is a test of clarity at the moment of request. It is not proof of lost revenue.",
+        "missing_evidence": [
+          "The Square submission screen.",
+          "Time from request to approval or decline.",
+          "Share of requests that reach a confirmed visit.",
+          "Phone, walk-in, and referral outcomes."
+        ],
+        "recommended_next_test": "At the moment a request is submitted, state plainly that the visit is not confirmed yet, how the customer will hear back, and what to do if they do not. Then measure how many opportunities that reach BOOK also reach CONFIRMED."
+      }
+    }
+  ],
+  "action": {
+    "id": "action-confirm-clarity",
+    "finding_id": "finding-confirm",
+    "title": "Say, at the moment of request, that the visit is not confirmed yet.",
+    "what_to_change": "On the booking request step, say in plain language that the visit is requested, not confirmed, how the customer will hear back, and what to do if they do not.",
+    "why_first": "The other two candidates did not survive. One was rejected. One stays a hypothesis. This is the friction tied to a public observation of the booking step, checked against counterevidence. It is the first test, not a claim that Oasis loses a known amount of money.",
+    "reason": "A customer trying to set one private hour can submit a request and still not have a confirmed visit. The policy page already says this. The open question is whether that is unmistakable when they think they are done.",
+    "customer_outcome": "Less uncertainty about whether the plan to decompress is actually set.",
+    "business_stage": "CONFIRM",
+    "measurement_required": "Did opportunity completion improve at CONFIRM after this change? Compare the share of BOOK opportunities that later reach CONFIRMED with a baseline. Do not convert that into dollars until first-party evidence exists.",
+    "status": "READY"
+  },
+  "monitor": {
+    "id": "monitor-confirm-completion",
+    "action_id": "action-confirm-clarity",
+    "metric": "Opportunity completion at CONFIRM",
+    "question": "Did opportunity completion improve at the stage we identified after the business made the recommended change?",
+    "baseline": "Not measured. This demo has no Oasis baseline.",
+    "current_value": "No new evidence yet.",
+    "status": "COLLECTING_EVIDENCE"
+  }
+}

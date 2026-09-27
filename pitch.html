@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Revenue Leak Engine</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #10110f; color: #f3f0e8; }
+    body { font-family: Palatino, "Iowan Old Style", Georgia, serif; }
+    section { display: none; min-height: 100vh; box-sizing: border-box; padding: 8vh 10vw; }
+    section.active { display: flex; flex-direction: column; justify-content: center; }
+    .kicker { font-family: "Avenir Next", "Gill Sans", sans-serif; letter-spacing: 0.14em; text-transform: uppercase; font-size: 13px; color: #9b968c; margin-bottom: 18px; }
+    h1 { font-weight: 500; font-size: clamp(40px, 6vw, 76px); line-height: 1.05; margin: 0 0 24px; max-width: 16ch; }
+    p { font-family: "Avenir Next", "Gill Sans", sans-serif; font-size: 22px; line-height: 1.4; max-width: 38rem; color: #d9d4c8; margin: 0 0 14px; }
+    .scope { color: #9b968c; font-size: 16px; }
+    .flow { font-size: clamp(22px, 3vw, 34px); line-height: 1.35; max-width: 22ch; }
+    nav { position: fixed; bottom: 24px; left: 10vw; font-family: "Avenir Next", "Gill Sans", sans-serif; color: #9b968c; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <section class="active" data-i="1">
+    <div class="kicker">Ann Arbor</div>
+    <h1>I just want to decompress.</h1>
+    <p>One private hour for two. Oasis Hot Tub Gardens.</p>
+  </section>
+  <section data-i="2">
+    <div class="kicker">Problem</div>
+    <h1>The opportunity stopped. The owner cannot see where.</h1>
+    <p>A website, a request, and the front desk are not one explanation.</p>
+  </section>
+  <section data-i="3">
+    <div class="kicker">Evidence</div>
+    <h1>8,322 local establishments. 17% left a checkout that felt too long.</h1>
+    <p class="scope">Washtenaw County employer establishments, Census County Business Patterns, 2023. Every paid-employee establishment, not Oasis.</p>
+    <p class="scope">Baymard, September 22, 2025. US online shoppers, ecommerce checkout, not appointment booking.</p>
+  </section>
+  <section data-i="4">
+    <div class="kicker">Solution</div>
+    <h1>Revenue Leak Engine</h1>
+    <p>Follow one customer opportunity, challenge the suspected cause, and name the first test.</p>
+  </section>
+  <section data-i="5">
+    <div class="kicker">Live demo</div>
+    <h1 class="flow">Mission → Journey → Evidence → Skeptic → Fix first → Monitor</h1>
+  </section>
+  <section data-i="6">
+    <div class="kicker">Jac, then Ann Arbor</div>
+    <h1>The graph holds the investigation.</h1>
+    <p>Walkers write evidence, a verdict, and one action. Granite is not in this demo.</p>
+    <p class="scope">Proof case: Oasis, with synthetic operations labeled as such. Next: a local pilot with first-party evidence, then monitoring, then SBDC and chamber distribution if the pilot is real.</p>
+  </section>
+  <nav id="pos">1 / 6 · arrows</nav>
+  <script>
+    const slides = [...document.querySelectorAll("section")];
+    let i = 0;
+    const pos = document.getElementById("pos");
+    function show(next) {
+      i = (next + slides.length) % slides.length;
+      slides.forEach((slide, n) => slide.classList.toggle("active", n === i));
+      pos.textContent = (i + 1) + " / 6 · arrows";
+    }
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight" || event.key === " ") show(i + 1);
+      if (event.key === "ArrowLeft") show(i - 1);
+    });
+  </script>
+</body>
+</html>
