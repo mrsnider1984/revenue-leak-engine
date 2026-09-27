@@ -90,7 +90,7 @@ A local pilot would replace the simulated handoff with first-party booking and c
 
 ## Links to fill when they exist
 
-- GitHub: public repository URL
+- GitHub: https://github.com/mrsnider1984/revenue-leak-engine
 - Demo video: URL
 - Hosted app: leave blank unless Jac Hammer actually serves this app
 
